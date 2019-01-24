@@ -427,12 +427,23 @@ t_stat realcons_disconnect(realcons_t *_this)
  * highspeed: 1: is called in tight loop,
  *	even check for timeout is to
  */
+#define REALCONS_RECONNECT_PRESCALE 10000
 void realcons_service(realcons_t *_this, int highspeed)
 {
 	int i;
-    if (!_this->connected)
-        return;
-
+	static long reconnectPrescale = REALCONS_RECONNECT_PRESCALE;
+	
+	if (!_this->connected ) {
+	  if (reconnectPrescale ) {
+	    reconnectPrescale--;
+	    return;
+	  } else {
+	    realcons_simh_set_connect(1,"");
+	    reconnectPrescale = REALCONS_RECONNECT_PRESCALE;
+	    return;
+	  }
+	}
+	
 	// if called by high speed loop: check only
 	if (highspeed && _this->service_highspeed_prescaler > 0) {
 		_this->service_highspeed_prescaler--;
