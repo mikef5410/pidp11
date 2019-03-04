@@ -8,13 +8,16 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 
 apt-get update
-
 #Install SDL2, optionally used for PDP-11 graphics terminal emulation
 apt-get install libsdl2-dev
 #Install pcap, optionally used when PDP-11 networking is enabled
 apt-get install libpcap-dev
+#Install readline, used for command-line editing in simh
+apt-get install libreadline-dev
 # Install screen
 apt-get install screen
+# Run xhost + at GUI start to allow access for vt11. Proof entire setup needs redoing.
+echo xhost + >> /etc/xdg/lxsession/LXDE-pi/autostart
 
 
 # Set up pidp11 init script, provided pidp11 is installed in /opt/pidp11

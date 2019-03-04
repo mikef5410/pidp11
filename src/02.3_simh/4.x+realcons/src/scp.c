@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   20-Jan-19    ISS     libreadline-dev is now a requirement
    08-Mar-16    RMS     Added shutdown flag for detach_all
    20-Mar-12    MP      Fixes to "SHOW <x> SHOW" commands
    06-Jan-12    JDB     Fixed "SHOW DEVICE" with only one enabled unit (Dave Bryan)
@@ -240,10 +241,8 @@
 #endif
 #include <sys/stat.h>
 #include <setjmp.h>
-
-#if defined(HAVE_DLOPEN)                                /* Dynamic Readline support */
-#include <dlfcn.h>
-#endif
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #ifdef USE_REALCONS
 #include "realcons.h"	/* REAL-CONSOLE */
@@ -8326,6 +8325,10 @@ return SCPE_OK;
    Outputs:
         optr    =       pointer to first non-blank character
                         NULL if EOF
+	Updated ISS Jan 2019.
+	 
+	  -D HVAE_DLOPEN=so is no longer required as this version is formally linked
+	  with libreadline.
 */
 
 char *read_line (char *cptr, int32 size, FILE *stream)
@@ -8355,36 +8358,10 @@ char *read_line_p (const char *prompt, char *cptr, int32 size, FILE *stream)
 #endif
 {
 char *tptr;
-#if defined(HAVE_DLOPEN)
-static int initialized = 0;
-typedef char *(*readline_func)(const char *);
-static readline_func p_readline = NULL;
-typedef void (*add_history_func)(const char *);
-static add_history_func p_add_history = NULL;
 
-if (prompt && (!initialized)) {
-    initialized = 1;
-    void *handle;
-
-#define S__STR_QUOTE(tok) #tok
-#define S__STR(tok) S__STR_QUOTE(tok)
-    handle = dlopen("libncurses." S__STR(HAVE_DLOPEN), RTLD_NOW|RTLD_GLOBAL);
-    handle = dlopen("libcurses." S__STR(HAVE_DLOPEN), RTLD_NOW|RTLD_GLOBAL);
-    handle = dlopen("libreadline." S__STR(HAVE_DLOPEN), RTLD_NOW|RTLD_GLOBAL);
-    if (!handle)
-        handle = dlopen("libreadline." S__STR(HAVE_DLOPEN) ".7", RTLD_NOW|RTLD_GLOBAL);
-    if (!handle)
-        handle = dlopen("libreadline." S__STR(HAVE_DLOPEN) ".6", RTLD_NOW|RTLD_GLOBAL);
-    if (!handle)
-        handle = dlopen("libreadline." S__STR(HAVE_DLOPEN) ".5", RTLD_NOW|RTLD_GLOBAL);
-    if (handle) {
-        p_readline = (readline_func)((size_t)dlsym(handle, "readline"));
-        p_add_history = (add_history_func)((size_t)dlsym(handle, "add_history"));
-        }
-    }
-if (prompt) {                                           /* interactive? */
-    if (p_readline) {
-        char *tmpc = p_readline (prompt);               /* get cmd line */
+if (prompt) {                                          /* interactive? */
+    if (1) {
+        char *tmpc = readline (prompt);               /* get cmd line */
         if (tmpc == NULL)                               /* bad result? */
             cptr = NULL;
         else {
@@ -8398,11 +8375,7 @@ if (prompt) {                                           /* interactive? */
         }
     }
 else cptr = fgets (cptr, size, stream);                 /* get cmd line */
-#else
-if (prompt)                                             /* interactive? */
-    printf ("%s", prompt);                              /* display prompt */
-cptr = fgets (cptr, size, stream);                      /* get cmd line */
-#endif
+
 
 if (cptr == NULL) {
     clearerr (stream);                                  /* clear error */
@@ -8425,10 +8398,9 @@ if ((*cptr == ';') || (*cptr == '#')) {                 /* ignore comment */
     *cptr = 0;
     }
 
-#if defined (HAVE_DLOPEN)
-if (prompt && p_add_history && *cptr)                   /* Save non blank lines in history */
-    p_add_history (cptr);
-#endif
+if (prompt && *cptr)                   /* Save non blank lines in history */
+    add_history (cptr);
+
 
 return cptr;
 }
