@@ -12,3 +12,7 @@ For reference, more about this project:
 * http://retrocmp.com/projects/blinkenbone
 * https://github.com/j-hoppe/BlinkenBone/releases
 * https://github.com/PiDP/pidp11  <-- Largely abandoned.
+
+Chase Covello's updated BSD2.11 is here:
+* http://chasecovello.com/2.11BSD_rq.dsk.xz
+* https://github.com/chasecovello/211bsd-pidp11/
